@@ -299,3 +299,7 @@ bigram_tf_idf <- bigrams_united %>%
   arrange(desc(tf_idf))
 
 bigram_tf_idf
+
+# 
+
+
