@@ -9,6 +9,7 @@
 # install.packages("wordcloud")
 # install.packages("reshape2")
 # install.packages("gutenbergr")
+# install.packages("topicmodels")
 library(janeaustenr)
 library(tidytext)
 library(textdata)
@@ -20,6 +21,7 @@ library(wordcloud)
 library(reshape2)
 library(forcats)
 library(gutenbergr)
+library(topicmodels)
 
 # basic unnesting of tokens and removing stop words ----
 text <- c("Because I could not stop for Death -",
@@ -300,6 +302,24 @@ bigram_tf_idf <- bigrams_united %>%
 
 bigram_tf_idf
 
-# 
+# topic modeling ----
+# latent dirichlet allocation: one of the common algorithms for topic modeling
+# 2 principles:
+# every document is a mixture of topics
+# every topic is a mixture of words
+# LDA is a method for estimating both at the same time: the fix of words associated with each topic
 
+data("AssociatedPress")
+AssociatedPress
+
+# 2-topic LDA model (typically we use more k)
+#  set a seed so that the output of the model is predictable
+ap_lda <- LDA(AssociatedPress, k = 2, control = list(seed = 1234))
+ap_lda
+
+# word-topic probabilities
+ap_topics <- tidy(ap_lda, matric = "beta")
+ap_topics
+
+# could be interesting to follow this specific case study: https://www.tidytextmining.com/nasa#some-initial-simple-exploration
 

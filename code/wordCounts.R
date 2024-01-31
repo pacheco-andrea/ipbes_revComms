@@ -16,7 +16,6 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/RevComms/"
 setwd(paste0(wdmain, "data/raw/"))
 
 
-
 # get the comments from the FOD and clean ----
 l <- list.files()
 names <- gsub(".csv", "", l[grep(".csv", l)])
@@ -39,6 +38,11 @@ for(i in 1:length(ch_comments))
 }
 all.comments <- do.call(rbind, ch_comments)
 summary(all.comments)
+
+# save clean data
+# dir.create(paste0(wdmain, "data/processed/nexus_FOD-review"))
+setwd(paste0(wdmain, "data/processed/nexus_FOD-review/"))
+write.csv(all.comments, "FOD_revComments.csv", row.names = FALSE)
 
 # get common stop words ----
 
@@ -86,7 +90,6 @@ dev.off()
 
 
 # save tidy data
-# dir.create(paste0(wdmain, "data/processed/nexus_FOD-review"))
 setwd(paste0(wdmain, "data/processed/nexus_FOD-review/"))
 write.csv(all.comments, "FOD_revComments_unnested.csv", row.names = FALSE)
 
