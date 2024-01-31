@@ -45,7 +45,7 @@ nx_col_income <- c("World" = "#696B5F",
 
 
 ### 5. Colour use for nexus elements
-nx_col_elements - c("Climate" = "#BAB0C9",
+nx_col_elements <- c("Climate" = "#BAB0C9",
                     "Food" = "#B65719",
                     "Biodiversity" = "#C6D68A",
                     "Health" = "#791E32", 
