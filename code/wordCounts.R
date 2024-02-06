@@ -13,7 +13,7 @@ library(ggplot2)
 
 # directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/RevComms/"
-setwd(paste0(wdmain, "data/raw/"))
+setwd(paste0(wdmain, "data/raw/nexus_fod"))
 
 
 # get the comments from the FOD and clean ----
@@ -44,6 +44,30 @@ summary(all.comments)
 setwd(paste0(wdmain, "data/processed/nexus_FOD-review/"))
 write.csv(all.comments, "FOD_revComments.csv", row.names = FALSE)
 
+# SOD ----
+setwd(paste0(wdmain, "data/raw/nexus_sod"))
+ch_comments <- read.csv("NXS_2nd_ext_rev_comments.csv")
+unique(ch_comments$X5.X.chapter.if.applicable)
+
+# need to recategorize chapter 5
+ch_comments$chapter <- gsub("nexus_chapter", "Ch", ch_comments$chapter.reviewed)
+ch_comments[grep("5.1_BIODIV", ch_comments$X5.X.chapter.if.applicable),]$chapter <- "Ch5_biodiversity"
+ch_comments[grep("5.2_WATER", ch_comments$X5.X.chapter.if.applicable),]$chapter <- "Ch5_water"
+ch_comments[grep("5.3_FOOD", ch_comments$X5.X.chapter.if.applicable),]$chapter <- "Ch5_food"
+ch_comments[grep("5.4_HEALTH", ch_comments$X5.X.chapter.if.applicable),]$chapter <- "Ch5_health"
+ch_comments[grep("5.5_CLIMATE", ch_comments$X5.X.chapter.if.applicable),]$chapter <- "Ch5_climate"
+
+ch_comments <- ch_comments[,-c(10,11)]
+
+
+# save clean data
+# dir.create(paste0(wdmain, "data/processed/nexus_FOD-review"))
+setwd(paste0(wdmain, "data/processed/nexus_SOD-review/"))
+write.csv(ch_comments, "SOD_revComments.csv", row.names = FALSE)
+
+
+
+
 # get common stop words ----
 
 data("stop_words") 
@@ -56,7 +80,10 @@ myStops <- data.frame(word = myStops,
 stop_words <- rbind(stop_words, myStops)
 
 # Count words used across all the chapters' comments ----
-
+# read back in clean data
+setwd(paste0(wdmain, "data/processed/"))
+all.comments <- read.csv("nexus_FOD-review/FOD_revComments.csv")
+colnames(all.comments)
 # make exception for the word climate change
 all.comments$comment <- gsub("climate change", "climate_change", all.comments$comment)
 # unnest comments as word tokens
@@ -88,18 +115,59 @@ png("wordCounts_chapters.png", units = "px", width = 3000, height = 1700, res = 
 plot
 dev.off()
 
-
 # save tidy data
 setwd(paste0(wdmain, "data/processed/nexus_FOD-review/"))
 write.csv(all.comments, "FOD_revComments_unnested.csv", row.names = FALSE)
 
 
+# repeat for SOD ----
+setwd(paste0(wdmain, "data/processed/"))
+all.comments <- read.csv("nexus_SOD-review/SOD_revComments.csv")
+colnames(all.comments)
+# make exception for the word climate change
+all.comments$comment <- gsub("climate change", "climate_change", all.comments$comment)
+# unnest comments as word tokens
+all.comments <- all.comments %>% 
+  unnest_tokens(word, comment) %>% 
+  anti_join(stop_words)
+# get the count of most often used words
+wcounts <- all.comments %>% 
+  group_by(chapter) %>%
+  count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+
+
+plot <- wcounts %>%
+  filter(n > 30) %>%
+  filter(chapter != "nexus_glossary") %>%
+  filter(chapter != "nexus_spm") %>%
+  ggplot(aes(n, word)) +
+  geom_col(fill = "#696B5F") +
+  theme(axis.text=element_text(size=8))+
+  facet_wrap(~chapter, ncol = 6, scales = "free") +
+  theme_light() +
+  labs(y = NULL, x = NULL)
+plot
+
+plot_spm <- wcounts %>%
+  filter(n > 100) %>%
+  filter(chapter == "nexus_spm") %>%
+  ggplot(aes(n, word)) +
+  geom_col(fill = "#696B5F") +
+  theme(axis.text=element_text(size=8))+
+  theme_light() +
+  labs(y = NULL, x = NULL)
+plot_spm
+
+cowplot::plot_grid(plot, plot_spm, nrow =  2)
 
 
 
-
-
-
+# save plot for FOD rev comms
+setwd(paste0(wdmain, "output/"))
+png("wordCounts_chapters_SOD.png", units = "px", width = 3000, height = 2000, res = 300)
+cowplot::plot_grid(plot, plot_spm, nrow =  2)
+dev.off()
 
 
 
